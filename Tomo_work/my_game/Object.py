@@ -12,9 +12,9 @@ import pyxel
 #############################################
 class Object:
 
-    def __init__(self, _x, _y, texture):
-        self.Pos = Vector2(_x, _y)
-        self.Tex = texture
+    def __init__(self, _pos, _texture):
+        self.Pos = _pos
+        self.Tex = _texture
     
     # 更新
     def Update():
