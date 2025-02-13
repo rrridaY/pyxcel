@@ -3,7 +3,21 @@ import pyxel
 # 定数
 SCREEN_WIDTH = 160  
 SCREEN_HEIGHT = 120
+STONE_INTERVAL = 30
 
+
+class Stone:
+    def __init__(self,x,y):
+        self.x = x
+        self.y = y
+
+    def update(self):
+        if self.y < SCREEN_HEIGHT:
+            self.y += 1
+
+    def draw(self):
+        pyxel.blt(self.x, self.y, 0, 0, 0, 16, 16, pyxel.COLOR_BLACK)
+        
 
 
 class App:
@@ -24,8 +38,9 @@ class App:
         self.player_x = SCREEN_WIDTH // 2
 
         # 石の座標
-        self.stone_x = SCREEN_WIDTH // 2
-        self.stone_y = 0
+        # self.stone_x = SCREEN_WIDTH // 2
+        # self.stone_y = 0
+        self.stones = []
         #石が衝突しているかどうか
         self.is_hit = False
 
@@ -53,18 +68,23 @@ class App:
         if pyxel.btn(pyxel.KEY_LEFT) and self.player_x > 0:
             self.player_x -= 1
 
-        # 石の移動
-        if self.stone_y < SCREEN_HEIGHT:
-            self.stone_y += 1
-        if self.stone_y == SCREEN_HEIGHT: # 石が画面外に出たら
-            self.stone_y = 0
-            # self.stone_x = pyxel.random(0, SCREEN_WIDTH - 16)
 
-        # 衝突判定
-        if self.player_x < self.stone_x + 16 and self.stone_x < self.player_x + 16 and self.stone_y == SCREEN_HEIGHT - 16:
-            self.is_hit = True
-        else:
-            self.is_hit = False
+        # 石の生成
+        if pyxel.frame_count % STONE_INTERVAL == 0:
+            self.stones.append(Stone(pyxel.rndi(0, SCREEN_WIDTH - 16), 0))
+
+        # 石の移動
+        for stone in self.stones.copy():
+            stone.update()
+
+            # 衝突判定
+            if (self.player_x < stone.x + 16 and stone.x < self.player_x + 16 and 
+                SCREEN_HEIGHT // 2 < stone.y + 16 and stone.y <SCREEN_HEIGHT // 2 + 16):
+                self.is_hit = True
+
+            # 画面外に出た石は削除
+            if stone.y == SCREEN_HEIGHT:
+                self.stones.remove(stone)
 
 
     def draw(self):
@@ -80,9 +100,10 @@ class App:
         pyxel.blt(self.player_x, SCREEN_HEIGHT // 2, 0, 
                   48, 0, 16, 16, 
                   pyxel.COLOR_BLACK)
-        pyxel.blt(self.stone_x, self.stone_y, 0, 
-                  0, 0, 16, 16, 
-                  pyxel.COLOR_BLACK)
+        # 石の描画
+        for stone in self.stones:
+            stone.draw()
+
         if self.is_hit:
             pyxel.text(SCREEN_WIDTH // 2 - 20, SCREEN_HEIGHT // 2, "GAME OVER", pyxel.COLOR_RED)
 
