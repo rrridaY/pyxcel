@@ -3,7 +3,9 @@ import pyxel
 # 定数
 SCREEN_WIDTH = 160  
 SCREEN_HEIGHT = 120
-STONE_INTERVAL = 30
+STONE_INTERVAL_FLAME = 30
+
+START_PLAYER_POSX = SCREEN_WIDTH // 2
 
 
 class Stone:
@@ -17,13 +19,21 @@ class Stone:
 
     def draw(self):
         pyxel.blt(self.x, self.y, 0, 0, 0, 16, 16, pyxel.COLOR_BLACK)
+    
+    def is_removable(self):
+        return self.y == SCREEN_HEIGHT 
+    
+def create_stone():
+    """ランダムなX座標の石をY=0に生成"""
+    return Stone(pyxel.rndi(0, SCREEN_WIDTH - 16), 0)
         
-
+def perflame(flame)->bool:
+    """受け取ったフレームごとの処理の実行bool"""
+    return pyxel.frame_count % flame == 0
 
 class App:
     def __init__(self):
         pyxel.init(160, 120, title="koha game")
-        ######### 初期化処理 #########
 
         # mouse を許可
         pyxel.mouse(True)
@@ -31,36 +41,29 @@ class App:
         # イメージバンクの読み込み
         pyxel.load("my_resource.pyxres")
 
-        # 数字の初期化
-        self.number = 0
-
-        # プレイヤーのX座標
-        self.player_x = SCREEN_WIDTH // 2
+        # プレイヤーの開始X座標
+        self.player_x = START_PLAYER_POSX
 
         # 石の座標
-        # self.stone_x = SCREEN_WIDTH // 2
-        # self.stone_y = 0
         self.stones = []
+        
         #石が衝突しているかどうか
         self.is_hit = False
 
 
 
 
-        ######### 実行部分 #########
+
         pyxel.run(self.update, self.draw)
 
+
+
+        ######### UPDATE #########
     def update(self):
         # escape で quit
         if pyxel.btnp(pyxel.KEY_ESCAPE):
             pyxel.quit()
         
-        # マウスの左クリックで数字を増やす
-        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
-            if 20 <= pyxel.mouse_x <= 40 and 50 <= pyxel.mouse_y <= 70:
-                self.number += 1
-            elif 110 <= pyxel.mouse_x <= 130 and 50 <= pyxel.mouse_y <= 70:      
-                self.number -= 1
         
         # プレイヤーの移動
         if pyxel.btn(pyxel.KEY_RIGHT) and self.player_x < SCREEN_WIDTH - 16:
@@ -70,8 +73,8 @@ class App:
 
 
         # 石の生成
-        if pyxel.frame_count % STONE_INTERVAL == 0:
-            self.stones.append(Stone(pyxel.rndi(0, SCREEN_WIDTH - 16), 0))
+        if perflame(STONE_INTERVAL_FLAME):
+            self.stones.append(create_stone())
 
         # 石の移動
         for stone in self.stones.copy():
@@ -83,20 +86,16 @@ class App:
                 self.is_hit = True
 
             # 画面外に出た石は削除
-            if stone.y == SCREEN_HEIGHT:
+            if stone.is_removable():
                 self.stones.remove(stone)
 
 
     def draw(self):
         """描画処理"""
         pyxel.cls(pyxel.COLOR_DARK_BLUE)
-        pyxel.text(70, 60, f"{self.number}",pyxel.COLOR_GREEN)
 
-        # +,- ボタン
-        pyxel.text(30,60,"+",pyxel.COLOR_WHITE)
-        pyxel.text(120,60,"-",pyxel.COLOR_WHITE)
-
-        # pyxeleditから
+        #### イメージバンクを用いた描画
+        # プレイヤーの描画
         pyxel.blt(self.player_x, SCREEN_HEIGHT // 2, 0, 
                   48, 0, 16, 16, 
                   pyxel.COLOR_BLACK)
