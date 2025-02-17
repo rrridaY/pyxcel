@@ -23,7 +23,7 @@ class Stone:
     def is_removable(self):
         return self.y == SCREEN_HEIGHT 
     
-def create_stone():
+def new_stone():
     """ランダムなX座標の石をY=0に生成"""
     return Stone(pyxel.rndi(0, SCREEN_WIDTH - 16), 0)
         
@@ -74,7 +74,7 @@ class App:
 
         # 石の生成
         if perflame(STONE_INTERVAL_FLAME):
-            self.stones.append(create_stone())
+            self.stones.append(new_stone())
 
         # 石の移動
         for stone in self.stones.copy():
@@ -91,7 +91,6 @@ class App:
 
 
     def draw(self):
-        """描画処理"""
         pyxel.cls(pyxel.COLOR_DARK_BLUE)
 
         #### イメージバンクを用いた描画
